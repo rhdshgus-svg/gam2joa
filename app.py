@@ -5,7 +5,8 @@ import datetime, re, math, time, os, base64
 import markdown
 import urllib.parse
 
-st.set_page_config(page_title="솔 운명상점 Lite Premium V10", layout="centered", initial_sidebar_state="collapsed")
+# 📱 프리미엄 모바일 레이아웃 설정
+st.set_page_config(page_title="솔 운명상점 Lite Premium V11", layout="centered", initial_sidebar_state="collapsed")
 MODEL_NAME = 'gemini-2.5-pro'
 
 try:
@@ -14,6 +15,9 @@ except Exception as e:
     st.error("API 키 설정 오류를 확인해주세요.")
     st.stop()
 
+# ==========================================
+# 🖼️ 0. 이미지 HTML 내장 변환 함수
+# ==========================================
 def get_base64_image(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
@@ -21,6 +25,9 @@ def get_base64_image(image_path):
             return f"data:image/png;base64,{encoded_string}"
     return None
 
+# ==========================================
+# ⚙️ 1. 사주 명식 계산 및 표 변환 엔진
+# ==========================================
 def get_sun_longitude(year, month, day, hour, minute):
     try: dt = datetime.datetime(year, month, day, hour, minute) - datetime.timedelta(hours=9)
     except ValueError: return 0
@@ -101,6 +108,9 @@ def create_saju_table(saju_list):
     html += "</tr></table>"
     return html
 
+# ==========================================
+# 🎨 2. 고품격 보고서 스타일 CSS
+# ==========================================
 PREMIUM_STYLE_CSS = """
 <style>
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -130,7 +140,6 @@ details[open] summary { background-color: #0A192F; color: #D4AF37; border-bottom
 details[open] summary::after { content: '▲'; }
 
 .chapter-content { padding: 25px; font-size: 15.5px; color: #333; background-color: #fff; }
-blockquote { background-color: #FFFBEB; border-left: 6px solid #D4AF37; padding: 15px; margin: 0 0 15px 0; border-radius: 4px; font-weight: 700; color: #111; }
 h3 { display: none; }
 
 .chapter-content table { width: 100%; border-collapse: collapse; margin: 5px 0 20px 0; font-size: 14.5px; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
@@ -145,6 +154,9 @@ h3 { display: none; }
 </style>
 """
 
+# ==========================================
+# 🚀 3. 메인 앱 UI 및 로직
+# ==========================================
 st.markdown("<h2 style='text-align: center; color: #0A192F; font-weight: 900;'>솔 운명상점 <span style='color: #D4AF37;'>Lite Premium</span></h2>", unsafe_allow_html=True)
 
 mode = st.radio("분석 모드", ["👤 개인 사주 리포트", "💞 궁합 시너지 리포트"], horizontal=True)
@@ -197,33 +209,31 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 너는 '솔 운명상점'의 마스터다. 인사말 없이 바로 결과만 출력하라.
                 
                 [작성 핵심 지침 - 매우 중요]
-                1. 표(Table) 최적화: 표 안의 내용은 긴 문장을 절대 쓰지 마라. 직관적인 이모티콘을 활용하여 명사형 키워드 위주로 극도로 요약하라. (예: 💰 타고난 재물운 | 📈 40대 중후반 발복)
-                2. 제1장 코어 에너지 특화: 정통 사주의 무게감을 더하라. 명식에 포함된 특수 살(백호대살, 괴강살, 도화살, 화개살, 역마살 등)을 판별하여 1~2개 설명표를 넣어라. 이 살들을 흉살로 풀지 말고 '강철의 제왕', '매혹의 별' 등 프리미엄 용어로 재해석하라. 조후(온기/냉기)에 대한 조언도 서술에 곁들여라.
-                3. 서술 최소화 및 깊이: 본문 텍스트는 1~2문단으로 요약하되, 어휘력과 통찰력을 높여 질을 풍성하게 하라.
-                4. 중복 금지: 앞 파트의 내용을 뒷 파트에서 절대 반복하지 마라.
-                5. 모든 파트에 100% 표 삽입: 9개 파트 모두 마크다운 표(Table)를 가장 먼저 띄우고 아래에 본문을 적어라.
-                6. 요약(>)은 10자 내외의 짧은 키워드로만 작성하라.
+                1. 요약(>) 블록 완전 삭제: 파트 제목 아래에 있던 요약 텍스트는 공간 낭비이므로 모두 삭제하라. 곧바로 표(Table)부터 시작하라.
+                2. 제1장 코어 에너지 프리미엄 강화 (가장 중요): 이 파트는 분량이 가장 길어야 한다. 반드시 2개의 표를 연속해서 넣어라. 첫 번째 표는 기본 명식(음양오행, 조후 등) 분석표, 두 번째 표는 특수 살(백호대살, 괴강살, 도화살, 화개살, 역마살 등 명식에 있는 것) 분석표다. 흉살로 풀지 말고 '강철의 제왕', '치명적 매력' 등 무게감 있는 프리미엄 용어로 재해석하라.
+                3. 제7장 전술 기상도 월별 세분화: 2026년과 2027년의 운세 흐름을 단순히 뭉뚱그리지 말고, 월별(또는 주요 분기별)로 세밀하게 쪼개어 이모티콘과 함께 상세한 표로 나열하라.
+                4. 표(Table) 최적화: 표 안의 내용은 긴 문장 없이 직관적인 이모티콘을 활용하여 명사형 키워드 위주로 극도로 요약하라.
+                5. 서술 최소화 및 중복 금지: 1장을 제외한 본문 텍스트는 1~2문단으로 짧게 서술하되, 이전 파트의 내용이 뒤에서 반복되지 않도록 철저히 통제하라.
+                6. 모든 파트에 100% 표 삽입 (선표/후서술): 9개 파트 모두 마크다운 표를 가장 먼저 띄우고 그 아래에 서술하라.
 
                 [필수 구성 9파트]
-                1. ✨ 코어 에너지 (정통 사주 특수 살 분석표 필수)
+                1. ✨ 코어 에너지 (기본 명식 표 + 특수 신살 표 필수. 분량 최대화)
                 2. 🌗 성격의 명암 (강약점 키워드 대비표)
                 3. 💎 재물운의 그릇 (재물 시기/형태 요약표)
                 4. 🚀 성공의 포지션 (추천 직무/분야 요약표)
-                5. 🤝 인복과 귀인 (귀인/악연 띠 또는 특징표)
+                5. 🤝 인복과 귀인 (귀인/악연 특징표)
                 6. 🧘 헬스케어 가이드 (주의 장기/관리법 요약표)
-                7. 🌤️ 2026-2027 전술 기상도 (연도별 운세 키워드표)
+                7. 🌤️ 2026-2027 전술 기상도 (26~27년 월별/분기별 상세 운세표 필수)
                 8. 🍀 행운의 개운법 (컬러/방위 요약표)
                 9. 💡 마스터의 최종 솔루션 (실천 지침 요약표)
 
                 [출력 형식 강제]
                 ### 파트제목
-                > **요약:** 10자 내외 키워드
-                
-                | 항목 | 핵심 키워드 |
+                | 항목 | 분석 내용 |
                 |---|---|
                 | 내용 | 내용 |
                 
-                (표 아래에 1~2문단의 깊이 있는 본문 서술)
+                (표 아래에 깊이 있는 본문 서술)
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
                 
@@ -236,11 +246,11 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 너는 '솔 운명상점'의 궁합 마스터다. 인사말 없이 바로 결과를 출력하라.
                 
                 [작성 핵심 지침 - 매우 중요]
-                1. 표(Table) 최적화: 표 안의 내용은 긴 문장 없이 직관적인 이모티콘을 활용하여 명사형 키워드 위주로 극도로 요약하라.
-                2. 서술 최소화: 본문 텍스트는 1~2문단으로 짧게 서술하되 깊이 있게 작성하라.
-                3. 중복 금지: 파트 간 비슷한 내용이 반복되지 않도록 철저히 분리하라.
-                4. 모든 파트에 100% 표 삽입: 8개의 모든 파트에 두 사람을 비교/분석하는 마크다운 표(Table)를 가장 먼저 띄워주고 그 아래에 서술하라.
-                5. 요약(>)은 10자 내외 핵심 키워드로 압축하라.
+                1. 요약(>) 블록 완전 삭제: 파트 제목 아래의 요약 줄은 완전히 삭제하고 곧바로 표(Table)부터 띄워라.
+                2. 제7장 단기 기상도 월별 세분화: 2026년과 2027년 두 사람의 궁합 흐름을 월별(또는 분기별)로 쪼개어 이모티콘과 함께 상세한 표로 나열하라.
+                3. 표(Table) 최적화: 표 내용은 긴 문장 없이 직관적인 이모티콘과 명사형 키워드로 극도로 요약하라.
+                4. 서술 최소화: 본문 텍스트는 1~2문단으로 짧게 서술하되 깊이 있게 작성하라.
+                5. 모든 파트에 100% 표 삽입 (선표/후서술): 8개의 모든 파트에 두 사람을 비교하는 표를 먼저 띄우고 서술하라.
 
                 [필수 구성 8파트]
                 1. 🌌 운명적 시너지 (시너지 요약표)
@@ -249,18 +259,16 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 4. 💰 경제적 합의 그릇 (재물 성향 요약표)
                 5. 👨‍👩‍👧‍👦 함께 그리는 미래 (가족운 키워드표)
                 6. 🏡 시가/처가와의 유기성 (가족 대처법 요약표)
-                7. 📈 향후 3년 단기 기상도 (연도별 궁합 흐름표)
+                7. 📈 2026-2027 단기 기상도 (26~27년 월별/분기별 상세 흐름표 필수)
                 8. 🤝 파트너십 개운법 (팀워크 실천 요약표)
 
                 [출력 형식 강제]
                 ### 파트제목
-                > **요약:** 10자 내외 키워드
-                
                 | 항목 | {name1} | {name2} |
                 |---|---|---|
                 | 내용 | 내용 | 내용 |
                 
-                (표 아래에 1~2문단의 깊이 있는 본문 서술)
+                (표 아래에 깊이 있는 본문 서술)
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
             
