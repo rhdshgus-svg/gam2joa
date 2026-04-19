@@ -5,7 +5,7 @@ import datetime, re, math, time, os, base64
 import markdown
 
 # 📱 프리미엄 모바일 레이아웃 설정
-st.set_page_config(page_title="솔 운명상점 Lite Premium V6", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="솔 운명상점 Lite Premium V8", layout="centered", initial_sidebar_state="collapsed")
 MODEL_NAME = 'gemini-2.5-pro'
 
 try:
@@ -45,11 +45,22 @@ def get_sun_longitude(year, month, day, hour, minute):
 
 def calculate_saju(d_str, t_str):
     try:
-        dp = re.findall(r'\d+', d_str)
-        if len(dp)==1 and len(dp[0])==8: y, m, d = int(dp[0][:4]), int(dp[0][4:6]), int(dp[0][6:])
-        else: return None
-        
-        # 📱 휴대폰 입력 편의성을 위한 시간 자동 파싱 (0743 -> 07시 43분)
+        # 📱 휴대폰 입력 편의성을 위한 생년월일 파싱 (6자리 or 8자리)
+        d_str_clean = re.sub(r'\D', '', d_str)
+        if len(d_str_clean) == 6:
+            yy = int(d_str_clean[:2])
+            # 00~30년생은 2000년대로, 31~99년생은 1900년대로 자동 인식
+            y = 2000 + yy if yy <= 30 else 1900 + yy
+            m = int(d_str_clean[2:4])
+            d = int(d_str_clean[4:6])
+        elif len(d_str_clean) == 8:
+            y = int(d_str_clean[:4])
+            m = int(d_str_clean[4:6])
+            d = int(d_str_clean[6:8])
+        else:
+            return None
+
+        # 📱 휴대폰 입력 편의성을 위한 시간 파싱 (0743 -> 07시 43분)
         t_str_clean = re.sub(r'\D', '', t_str)
         if len(t_str_clean) >= 3:
             hr = int(t_str_clean[:-2])
@@ -131,11 +142,11 @@ details[open] summary { background-color: #0A192F; color: #D4AF37; border-bottom
 details[open] summary::after { content: '▲'; }
 
 .chapter-content { padding: 25px; font-size: 15.5px; color: #333; background-color: #fff; }
-blockquote { background-color: #FFFBEB; border-left: 6px solid #D4AF37; padding: 15px; margin: 0 0 20px 0; border-radius: 4px; font-weight: 700; color: #111; }
+blockquote { background-color: #FFFBEB; border-left: 6px solid #D4AF37; padding: 15px; margin: 0 0 15px 0; border-radius: 4px; font-weight: 700; color: #111; }
 h3 { display: none; }
 
-/* 🌟 본문 내 AI 생성 표(Table) 프리미엄 스타일링 */
-.chapter-content table { width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 14px; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
+/* 🌟 본문 내 표(Table) 프리미엄 스타일링 (표가 본문 상단에 예쁘게 배치되도록) */
+.chapter-content table { width: 100%; border-collapse: collapse; margin: 5px 0 20px 0; font-size: 14.5px; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
 .chapter-content th { background-color: #F8FAFC; color: #0A192F; padding: 14px; text-align: center; font-weight: 800; border-bottom: 2px solid #0A192F; border-right: 1px solid #E2E8F0; }
 .chapter-content th:last-child { border-right: none; }
 .chapter-content td { padding: 14px; border-bottom: 1px solid #E2E8F0; border-right: 1px solid #E2E8F0; text-align: center; color: #333; }
@@ -160,8 +171,8 @@ with st.container():
     with col2: gender1 = st.selectbox("성별", ["여성", "남성"])
     
     col3, col4 = st.columns(2)
-    with col3: birth1 = st.text_input("생년월일 (8자리)", placeholder="19920512")
-    with col4: time1 = st.text_input("태어난 시간", placeholder="0730 (기호 없이 숫자만)")
+    with col3: birth1 = st.text_input("생년월일", placeholder="920512 (6자리 또는 8자리)")
+    with col4: time1 = st.text_input("태어난 시간", placeholder="0730 (숫자만, 모르면 빈칸)")
 
 if mode == "💞 궁합 시너지 리포트":
     st.markdown("<hr style='border: 0.5px solid #eee;'>", unsafe_allow_html=True)
@@ -170,14 +181,14 @@ if mode == "💞 궁합 시너지 리포트":
     with col6: gender2 = st.selectbox("상대방 성별", ["남성", "여성"])
     
     col7, col8 = st.columns(2)
-    with col7: birth2 = st.text_input("상대방 생년월일", placeholder="19940821")
-    with col8: time2 = st.text_input("상대방 태어난 시간", placeholder="0845 (기호 없이 숫자만)")
+    with col7: birth2 = st.text_input("상대방 생년월일", placeholder="940821 (6자리 또는 8자리)")
+    with col8: time2 = st.text_input("상대방 태어난 시간", placeholder="0845 (숫자만, 모르면 빈칸)")
 
 if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=True):
     if not name1 or not birth1:
-        st.warning("정보를 입력해주세요.")
+        st.warning("필수 정보를 입력해주세요.")
     else:
-        with st.spinner("AI 마스터가 심층 데이터 표를 포함한 보고서를 구성 중입니다..."):
+        with st.spinner("AI 마스터가 심층 데이터 표를 포함한 보고서를 구성 중입니다... (최대 1분 소요)"):
             saju_list1 = calculate_saju(birth1, time1) 
             saju_table_html = create_saju_table(saju_list1)
             
@@ -199,32 +210,35 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
             if mode == "👤 개인 사주 리포트":
                 prompt = f"""
                 고객: {name1} ({gender1}, 명식: {saju_list1})
-                너는 '솔 운명상점'의 마스터다. 인사말이나 서론 없이 바로 결과만 출력하라.
+                너는 '솔 운명상점'의 마스터다. 인사말 없이 바로 결과만 출력하라.
                 
-                [작성 핵심 지침]
-                1. 상단의 요약(>)은 구구절절 설명하지 말고 **10자 내외의 핵심 키워드**로 극도로 압축하라.
-                2. 상세 분석 본문은 기존보다 살을 덧붙여서 **각 파트당 3~4문단의 깊이 있는 평문**으로 서술하라.
-                3. 프리미엄 보고서 느낌을 주기 위해, **최소 3개 이상의 파트(예: 성격의 명암, 직업운, 26-27년 운세 등)에는 반드시 마크다운 표(Markdown Table)를 삽입**하여 핵심 데이터를 시각화하라. 표의 내용은 창의적이고 전문적으로 구성하라.
+                [작성 핵심 지침 - 매우 중요]
+                1. 서술 최소화: 각 파트의 본문 텍스트는 **절대 2문단을 넘지 않게** 짧고 굵게 작성하라.
+                2. 중복 절대 금지: 앞 파트에서 언급한 내용을 뒷 파트에서 다시 반복하지 마라.
+                3. **모든 파트에 100% 표 삽입 (선표/후서술)**: 9개의 모든 파트에 반드시 마크다운 표(Table)를 가장 먼저 띄워주고, 그 아래에 본문 서술을 적어라.
+                4. 요약(>)은 **10자 내외의 짧은 키워드**로만 작성하라.
+                5. 리포트가 중간에 잘리지 않고 끝까지 생성되도록 분량을 최적화하라.
 
-                [필수 구성 9파트]
-                1. ✨ 코어 에너지 (기본 기질)
-                2. 🌗 성격의 명암 (강점과 약점을 표로 비교)
-                3. 💎 재물운의 그릇 (부의 타이밍)
-                4. 🚀 성공의 포지션 (직업운 분석표 포함)
-                5. 🤝 인복과 귀인 (인간관계)
-                6. 🧘 헬스케어 가이드 (건강)
-                7. 🌤️ 2026-2027 전술 기상도 (연도별 운세 흐름을 표로 정리)
-                8. 🍀 행운의 개운법 (방위/컬러)
-                9. 💡 마스터의 최종 솔루션
+                [필수 구성 9파트] (각 파트마다 표 필수)
+                1. ✨ 코어 에너지 (기본 기질 요약표)
+                2. 🌗 성격의 명암 (강약점 대비표)
+                3. 💎 재물운의 그릇 (재물 모으는 시기/방법 표)
+                4. 🚀 성공의 포지션 (적합 직업/포지션 표)
+                5. 🤝 인복과 귀인 (귀인/악연 구별표)
+                6. 🧘 헬스케어 가이드 (건강 주의점/관리표)
+                7. 🌤️ 2026-2027 전술 기상도 (연도별 핵심 운세표)
+                8. 🍀 행운의 개운법 (행운의 컬러/방향표)
+                9. 💡 마스터의 최종 솔루션 (실천 지침 3가지 표)
 
-                [출력 형식]
+                [출력 형식 강제] - 이 형태를 모든 파트에 똑같이 적용하라.
                 ### 파트제목
-                > **요약:** 10자 내외 단답형 키워드
-                본문내용 (3~4문단 상세 설명)
+                > **요약:** 10자 내외 키워드
                 
-                | 항목 | 설명 | (필요한 곳에 마크다운 표 삽입)
+                | 항목 | 분석 내용 |
                 |---|---|
-                | 데이터 | 데이터 |
+                | 내용 | 내용 |
+                
+                (표 아래에 1~2문단의 아주 짧고 명확한 본문 서술)
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
                 
@@ -234,7 +248,6 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                     if p.strip():
                         lines = p.strip().split("\n", 1)
                         title = lines[0].strip()
-                        # markdown의 tables 확장을 사용하여 표를 HTML로 자동 변환
                         content = markdown.markdown(lines[1].strip(), extensions=['tables']) if len(lines) > 1 else ""
                         chapters_html += f"""
                         <details>
@@ -266,20 +279,32 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 고객1: {name1}({gender1}, 명식: {saju_list1}) / 고객2: {name2}({gender2}, 명식: {saju_list2})
                 너는 '솔 운명상점'의 궁합 마스터다. 인사말 없이 바로 결과를 출력하라.
                 
-                [작성 핵심 지침]
-                1. 요약(>)은 **10자 내외 핵심 키워드**로 압축.
-                2. 본문은 **3~4문단의 깊이 있는 평문**으로 서술.
-                3. **최소 3개 이상의 파트(예: 보완점, 경제적 합, 5년 운세 등)에 반드시 마크다운 표(Table)를 삽입**하여 두 사람의 시너지를 고급스럽게 시각화할 것.
+                [작성 핵심 지침 - 매우 중요]
+                1. 서술 최소화: 본문 텍스트는 **절대 2문단을 넘지 않게** 짧게 서술하라.
+                2. 중복 절대 금지: 파트 간 비슷한 내용이 반복되지 않도록 철저히 분리하라.
+                3. **모든 파트에 100% 표 삽입 (선표/후서술)**: 8개의 모든 파트에 두 사람을 비교/분석하는 마크다운 표(Table)를 가장 먼저 띄워주고 그 아래에 서술하라.
+                4. 요약(>)은 **10자 내외 핵심 키워드**로 압축하라.
+                5. 끝까지 잘림 없이 완벽히 출력되도록 분량을 조절하라.
 
-                [필수 구성 8파트]
-                1. 🌌 운명적 시너지 (총평)
-                2. 🧩 상호 보완의 에너지 (두 사람의 시너지 표 포함)
-                3. ⚡ 소통과 갈등의 뇌관 (다툼 예방)
-                4. 💰 경제적 합의 그릇 (재물 관리 성향 비교표 포함)
-                5. 👨‍👩‍👧‍👦 함께 그리는 미래 (가족/자녀)
-                6. 🏡 시가/처가와의 유기성 (가족관계)
-                7. 📈 향후 3년 단기 기상도 (연도별 궁합 흐름 표 포함)
-                8. 🤝 파트너십 개운법 (행동지침)
+                [필수 구성 8파트] (각 파트마다 표 필수)
+                1. 🌌 운명적 시너지 (궁합 총점 및 시너지 표)
+                2. 🧩 상호 보완의 에너지 (서로 보완해주는 역할 표)
+                3. ⚡ 소통과 갈등의 뇌관 (다툼 포인트 및 해결책 표)
+                4. 💰 경제적 합의 그릇 (재물 관리 추천 표)
+                5. 👨‍👩‍👧‍👦 함께 그리는 미래 (가족/자녀운 흐름 표)
+                6. 🏡 시가/처가와의 유기성 (가족관계 대처법 표)
+                7. 📈 향후 3년 단기 기상도 (연도별 궁합 흐름 표)
+                8. 🤝 파트너십 개운법 (팀워크를 위한 3가지 약속 표)
+
+                [출력 형식 강제] - 모든 파트를 아래 형식으로 통일.
+                ### 파트제목
+                > **요약:** 10자 내외 키워드
+                
+                | 항목 | {name1} | {name2} |
+                |---|---|---|
+                | 내용 | 내용 | 내용 |
+                
+                (표 아래에 1~2문단의 아주 짧고 명확한 본문 서술)
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
                 
@@ -316,6 +341,6 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 </body></html>
                 """
 
-            st.success("✅ 고품격 데이터 표가 포함된 리포트가 완성되었습니다!")
+            st.success("✅ 편의성과 가독성이 완벽하게 최적화된 리포트가 완성되었습니다!")
             st.download_button("📥 리포트 다운로드 (HTML)", data=final_html, file_name=f"{name1}_솔운명상점_리포트.html", mime="text/html", use_container_width=True)
             st.components.v1.html(final_html, height=1200, scrolling=True)
