@@ -1,11 +1,11 @@
 import streamlit as st
 from google import genai
 from google.genai import types
-import datetime, re, math, time
+import datetime, re, math, time, os, base64
 import markdown
 
-# 📱 모바일 최적화 및 딥 네이비/웜 골드 브랜드 테마 적용
-st.set_page_config(page_title="솔 운명상점 Lite Premium", layout="centered", initial_sidebar_state="collapsed")
+# 📱 프리미엄 모바일 레이아웃 설정 (딥 네이비 & 웜 골드)
+st.set_page_config(page_title="솔 운명상점 Lite Premium V3", layout="centered", initial_sidebar_state="collapsed")
 MODEL_NAME = 'gemini-2.5-pro'
 
 try:
@@ -15,7 +15,17 @@ except Exception as e:
     st.stop()
 
 # ==========================================
-# ⚙️ 1. 사주 명식 계산 엔진 (기존의 정교한 로직 유지)
+# 🖼️ 0. 이미지 HTML 내장 변환 함수 (카톡 전송 시 깨짐 방지)
+# ==========================================
+def get_base64_image(image_path):
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            encoded_string = base64.b64encode(img_file.read()).decode()
+            return f"data:image/png;base64,{encoded_string}"
+    return None
+
+# ==========================================
+# ⚙️ 1. 사주 명식 계산 엔진
 # ==========================================
 def get_sun_longitude(year, month, day, hour, minute):
     try: dt = datetime.datetime(year, month, day, hour, minute) - datetime.timedelta(hours=9)
@@ -63,7 +73,7 @@ def calculate_saju(d_str, t_str):
             if tv < limit: hb = i; break
         hs_start = {0:0, 1:2, 2:4, 3:6, 4:8, 5:0, 6:2, 7:4, 8:6, 9:8}[ds]
         hp = stems[(hs_start + hb) % 10] + branches[hb]
-        return f"{yp}년 {mp}월 {dp_str}일 {hp}시"
+        return f"{yp}, {mp}, {dp_str}, {hp}"
     except: return None
 
 def call_gemini(prompt):
@@ -75,188 +85,209 @@ def call_gemini(prompt):
     return res.text.strip()
 
 # ==========================================
-# 🎨 2. 프리미엄 HTML/CSS (다운로드용)
+# 🎨 2. 김지훈/김다은 스타일 프리미엄 CSS
 # ==========================================
-PREMIUM_CSS = """
+PREMIUM_STYLE_CSS = """
 <style>
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 * { font-family: 'Pretendard', sans-serif; box-sizing: border-box; }
-body { background-color: #f4f4f5; margin: 0; padding: 10px; color: #111; line-height: 1.6; }
-.report-container { max-width: 600px; margin: 0 auto; background-color: #FFFFFF; padding: 25px 15px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-top: 6px solid #0A192F; }
+body { background-color: #f4f4f5; margin: 0; padding: 10px; color: #111; line-height: 1.7; word-break: keep-all; }
 
-/* 브랜드 헤더 (해와 소나무 모티브) */
-.brand-header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #E2E8F0; }
-.brand-header h1 { font-size: 26px; font-weight: 900; margin: 0; color: #0A192F; letter-spacing: -0.5px; }
-.brand-header h1 span { color: #D4AF37; }
-.brand-header p { font-size: 13px; color: #718096; margin: 8px 0 0 0; font-weight: 500; }
-.saju-info { display: inline-block; background-color: #F8FAFC; color: #0A192F; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; border: 1px solid #E2E8F0; margin-top: 15px; }
+.report-container { max-width: 800px; margin: 0 auto; background-color: #FFFFFF; padding: 40px 20px; border-radius: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid #0A192F; }
 
-/* 챕터 디자인 (아코디언 형태 시뮬레이션) */
-.chapter { margin-bottom: 20px; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; }
-.chapter-title { background-color: #0A192F; color: #FFFFFF; font-size: 16px; font-weight: 700; padding: 12px 15px; margin: 0; display: flex; align-items: center; }
-.chapter-title::before { content: '✦'; color: #D4AF37; margin-right: 8px; font-size: 14px; }
-.chapter-content { padding: 15px; background-color: #FFFFFF; font-size: 15px; }
+/* 엠블럼/로고 이미지 영역 */
+.logo-box { text-align: center; margin-bottom: 25px; }
+.logo-box img { max-width: 250px; height: auto; }
 
-/* 형광펜 핵심 요약 박스 */
-blockquote { background-color: #FFFDF5; border-left: 4px solid #D4AF37; padding: 12px 15px; margin: 0 0 15px 0; border-radius: 4px; font-weight: 700; color: #0A192F; font-size: 15px; box-shadow: 0 1px 3px rgba(212, 175, 55, 0.1); }
+.report-header-title { text-align: center; font-size: 26px; font-weight: 900; color: #0A192F; margin-bottom: 10px; }
+.report-header-subtitle { text-align: center; font-size: 14px; color: #D4AF37; font-weight: 700; letter-spacing: 2px; margin-bottom: 30px; text-transform: uppercase; }
+
+/* 대표님 고정 인사말 박스 */
+.greeting-box { background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 25px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #0A192F; line-height: 1.8; font-size: 15px; color: #333; }
+.greeting-box strong { color: #0A192F; font-size: 16px; }
+
+/* 명식 선언 박스 */
+.saju-declaration { background-color: #F8FAFC; border: 1px solid #E2E8F0; color: #2D3748; padding: 20px; border-radius: 8px; font-weight: 700; text-align: center; margin-bottom: 40px; font-size: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+
+/* 챕터 타이틀 */
+.chapter-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0A192F; padding-bottom: 8px; margin-top: 50px; margin-bottom: 20px; }
+.chapter-title { font-size: 19px; font-weight: 900; color: #0A192F; }
+.methodology { font-size: 11px; color: #A0AEC0; font-weight: 600; }
+
+/* 형광펜 요약 박스 */
+blockquote { background-color: #FFFBEB; border-left: 5px solid #D4AF37; padding: 18px; margin: 0 0 25px 0; border-radius: 4px; font-weight: 700; color: #111; font-size: 15.5px; line-height: 1.6; }
 blockquote p { margin: 0; }
 
-h3 { display: none; } /* 마크다운 H3 숨김 처리 (커스텀 타이틀 사용) */
-p { margin-top: 0; margin-bottom: 15px; color: #333; text-align: justify; word-break: keep-all; }
-strong { color: #0A192F; font-weight: 800; background: linear-gradient(to top, rgba(212, 175, 55, 0.3) 30%, transparent 30%); }
+/* 상세 분석 텍스트 */
+h3 { display: none; }
+.detail-content { font-size: 15px; color: #333; text-align: justify; margin-bottom: 30px; padding-left: 2px; }
+strong { color: #800020; font-weight: 800; }
 
-.footer { text-align: center; margin-top: 40px; font-size: 12px; color: #A0AEC0; }
+.footer { text-align: center; margin-top: 50px; font-size: 12px; color: #CBD5E0; border-top: 1px solid #EDF2F7; padding-top: 20px; }
 </style>
 """
 
 # ==========================================
-# 🚀 3. Streamlit UI
+# 🚀 3. 메인 앱 UI
 # ==========================================
-st.markdown("""
-    <style>
-    div[data-testid="stAppViewBlockContainer"] { padding-top: 2rem; padding-bottom: 2rem; }
-    .stButton>button { background-color: #0A192F; color: #D4AF37; font-weight: bold; border-radius: 8px; height: 55px; border: none; font-size: 16px; }
-    .stButton>button:hover { background-color: #112A4F; color: #FFFFFF; }
-    </style>
-    """, unsafe_allow_html=True)
-
 st.markdown("<h2 style='text-align: center; color: #0A192F; font-weight: 900;'>솔 운명상점 <span style='color: #D4AF37;'>Lite Premium</span></h2>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #666; font-size: 14px;'>바쁜 샵 환경에 맞춘 초고속 VIP 리포트 생성기</p>", unsafe_allow_html=True)
 
-mode = st.radio("상담 모드 선택", ["👤 개인 분석", "💞 시너지(궁합) 분석"], horizontal=True)
+mode = st.radio("분석 모드", ["👤 개인 사주 리포트", "💞 궁합 시너지 리포트"], horizontal=True)
 
-st.markdown("### 📝 고객 1 정보")
-col1, col2 = st.columns(2)
-with col1: name1 = st.text_input("이름", key="n1")
-with col2: gender1 = st.selectbox("성별", ["여성", "남성"], key="g1")
-col3, col4 = st.columns(2)
-with col3: birth1 = st.text_input("생년월일 (예: 19800101)", key="b1")
-with col4: time1 = st.text_input("태어난 시간 (예: 14:30)", key="t1", placeholder="모르면 빈칸")
+with st.container():
+    col1, col2 = st.columns(2)
+    with col1: name1 = st.text_input("고객 성함", placeholder="김지훈")
+    with col2: gender1 = st.selectbox("성별", ["여성", "남성"])
+    
+    col3, col4 = st.columns(2)
+    with col3: birth1 = st.text_input("생년월일 (8자리)", placeholder="19920512")
+    with col4: time1 = st.text_input("태어난 시간", placeholder="07:30 (모르면 비워두기)")
 
-if mode == "💞 시너지(궁합) 분석":
-    st.markdown("---")
-    st.markdown("### 📝 고객 2 정보")
+if mode == "💞 궁합 시너지 리포트":
+    st.markdown("<hr style='border: 0.5px solid #eee;'>", unsafe_allow_html=True)
     col5, col6 = st.columns(2)
-    with col5: name2 = st.text_input("이름", key="n2")
-    with col6: gender2 = st.selectbox("성별", ["남성", "여성"], key="g2")
+    with col5: name2 = st.text_input("상대방 성함", placeholder="김다은")
+    with col6: gender2 = st.selectbox("상대방 성별", ["남성", "여성"])
+    
     col7, col8 = st.columns(2)
-    with col7: birth2 = st.text_input("생년월일", key="b2")
-    with col8: time2 = st.text_input("태어난 시간", key="t2", placeholder="모르면 빈칸")
+    with col7: birth2 = st.text_input("상대방 생년월일", placeholder="19940821")
+    with col8: time2 = st.text_input("상대방 태어난 시간", placeholder="모르면 비워두기")
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-if st.button("✨ 프리미엄 리포트 10초 쾌속 생성", use_container_width=True):
+if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=True):
     if not name1 or not birth1:
-        st.warning("기본 정보를 입력해주세요.")
+        st.warning("성함과 생년월일은 필수 입력 항목입니다.")
     else:
-        with st.spinner("AI 엔진이 데이터를 분석하고 있습니다... (약 10초 소요)"):
-            saju1 = calculate_saju(birth1, time1)
+        with st.spinner("AI 마스터가 명식을 분석 중입니다..."):
+            saju_val1 = calculate_saju(birth1, time1)
             
-            if mode == "👤 개인 분석":
-                # 8개 챕터를 한 번의 프롬프트로 생성 (속도와 퀄리티 동시 확보)
-                prompt = f"""
-                고객: {name1} ({gender1}), 명식: {saju1}
-                너는 명리학과 심리학에 능통한 최고급 컨설턴트야. 고객에게 제공할 8챕터 분량의 프리미엄 분석 리포트를 작성해.
-                문체는 정중하고 세련된 평문(해요체/하십시오체)을 사용하고, 훈계나 불필요한 한자는 빼.
-                
-                [작성 규칙 - 매우 중요]
-                각 챕터는 반드시 아래의 마크다운 형식을 정확히 지켜서 출력해.
-                ### 챕터명
-                > **핵심 요약:** (이곳에 1~2줄로 시선을 끄는 임팩트 있는 요약 작성)
-                (이곳에 2~3문단으로 이루어진 깊이 있되 간결한 상세 설명 작성. 가독성을 위해 줄바꿈 잘할 것)
-
-                [작성할 8개 챕터 목록]
-                1. 코어 에너지 (타고난 본성과 매력)
-                2. 자본의 그릇 (재물운의 크기와 돈이 새는 곳)
-                3. 숨겨진 무기 (남들은 모르는 나만의 천재성)
-                4. 대인 관계망 (내게 득이 되는 사람과 독이 되는 사람)
-                5. 비즈니스 포지션 (직장/사업에서 성공률이 가장 높은 역할)
-                6. 헬스케어 (선천적으로 취약한 건강 포인트)
-                7. 2026-2027 기상도 (향후 2년간의 굵직한 운세 흐름)
-                8. 마스터의 조언 (내일 당장 실천할 단 하나의 개운법)
-                """
-                raw_text = call_gemini(prompt)
-                
-                # 생성된 마크다운을 챕터별 HTML로 예쁘게 파싱
-                chapters_html = ""
-                parts = raw_text.split("###")
-                for part in parts:
-                    if part.strip():
-                        lines = part.strip().split("\n", 1)
-                        if len(lines) > 1:
-                            title = lines[0].strip()
-                            content = markdown.markdown(lines[1].strip())
-                            chapters_html += f"<div class='chapter'><h2 class='chapter-title'>{title}</h2><div class='chapter-content'>{content}</div></div>"
-                
-                html_export = f"""
-                <!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta charset="utf-8">{PREMIUM_CSS}</head>
-                <body>
-                <div class="report-container">
-                    <div class="brand-header">
-                        <h1>솔 <span>운명상점</span></h1>
-                        <p>해처럼 굳건하게, 소나무처럼 푸르게</p>
-                        <div class="saju-info">{name1}님의 VVIP 리포트</div>
-                    </div>
-                    {chapters_html}
-                    <div class="footer">본 리포트는 명리학 기반의 통계적 분석으로, 고객님의 더 나은 내일을 응원합니다.</div>
-                </div>
-                </body></html>
-                """
-                
+            # [이미지 처리] 로컬의 PNG 파일을 읽어서 HTML에 내장시킵니다.
+            img_base64 = get_base64_image("sol운명상점.png")
+            if img_base64:
+                logo_img_tag = f"<div class='logo-box'><img src='{img_base64}' alt='솔 운명상점 로고'></div>"
             else:
-                saju2 = calculate_saju(birth2, time2)
-                prompt = f"""
-                고객1: {name1}({gender1}, {saju1}) / 고객2: {name2}({gender2}, {saju2})
-                너는 남녀 관계 및 파트너십 분석에 능통한 최고급 컨설턴트야. 두 사람의 궁합을 다루는 8챕터 프리미엄 리포트를 작성해.
-                
-                [작성 규칙 - 매우 중요]
-                각 챕터는 반드시 아래의 마크다운 형식을 정확히 지켜서 출력해.
-                ### 챕터명
-                > **핵심 요약:** (이곳에 1~2줄로 시선을 끄는 임팩트 있는 요약 작성)
-                (이곳에 2~3문단으로 이루어진 깊이 있되 간결한 상세 설명 작성)
+                logo_img_tag = f"<div class='logo-box'><h1 style='color:#0A192F; margin:0;'>SOL</h1><div style='color:#D4AF37; font-weight:bold; letter-spacing:3px;'>운명상점</div></div>"
+            
+            # [고정 인사말 생성] 궁합일 경우 두 사람 이름을 모두 표기합니다.
+            display_name = f"{name1}님, {name2}" if mode == "💞 궁합 시너지 리포트" and name2 else name1
+            greeting_html = f"""
+            <div class="greeting-box">
+                <strong>안녕하세요, {display_name}님.</strong><br><br>
+                저희 Sol 운명상점을 이용해 주셔서 진심으로 감사합니다.<br>
+                Sol 운명상점은 고전 명리학의 지혜와 MBTI를 결합한 운명 분석 전문 기업입니다.<br>
+                저희 브랜드 네임인 'Sol'에는 Solar(앞길을 비추는 태양)와 Solution(실질적인 해답)의 가치가 담겨 있습니다.<br>
+                데이터가 드리는 확신과 마음이 전하는 따뜻함으로, {display_name}님의 내일을 함께 설계하겠습니다.<br><br>
+                <div style="text-align: right;"><strong>Sol 운명상점 대표 드림</strong></div>
+            </div>
+            """
 
-                [작성할 8개 챕터 목록]
-                1. 운명적 시너지 (두 사람이 만났을 때 폭발하는 긍정적 에너지)
-                2. 상호 매력 포인트 (서로가 상대에게 끌릴 수밖에 없는 이유)
-                3. 갈등 통제법 (다툼이 발생하기 쉬운 뇌관과 현명한 대처법)
-                4. 경제권 주도 (둘 중 누가 돈 관리를 주도해야 재물이 불어나는가)
-                5. 함께 그리는 미래 (두 사람이 뭉쳤을 때 달성하기 좋은 목표)
-                6. 양가 관계망 (가족 및 주변 사람들과의 원만한 관계 조율법)
-                7. 5년 단기 기상도 (향후 5년간 두 사람에게 다가올 중요한 변화)
-                8. 파트너십 조언 (완벽한 팀이 되기 위한 핵심 행동 지침)
+            if mode == "👤 개인 사주 리포트":
+                prompt = f"""
+                고객: {name1} ({gender1}, 명식: {saju_val1})
+                너는 '김지훈_VIP솔루션' 스타일의 고품격 사주 리포트를 작성하는 마스터다. 
+                내용은 명료하게 줄이되, 구성은 반드시 아래 8개 장(Chapter)을 모두 포함해야 한다. 
+                문체는 정중하고 자연스러운 평문(해요체/하십시오체)을 사용하고, 기계적인 느낌의 번호 매기기나 과도한 이모티콘을 빼라.
+
+                [필수 구성 8챕터]
+                1. 코어 에너지 (본성과 기질)
+                2. 재물운의 그릇 (부의 흐름과 타이밍)
+                3. 직업적 성공 지점 (최적의 사회적 포지션)
+                4. 인복과 귀인 (나를 돕는 사람과 경계할 사람)
+                5. 헬스케어 가이드 (주의할 장기와 활력 유지법)
+                6. 2026-2027 기상도 (향후 2년의 핵심 운세)
+                7. 공간 개운법 (행운을 부르는 방위와 인테리어)
+                8. 마스터의 최종 조언 (내일 당장 실천할 운명 개선책)
+
+                [작성 형식]
+                각 장은 반드시 아래 형식을 지켜라:
+                ### 제 N장. 제목
+                > **핵심 요약:** (이곳에 1~2줄로 임팩트 있는 요약 작성)
+                **[상세 분석]**
+                (이곳에 2~3문단으로 상세 설명 기술)
                 """
-                raw_text = call_gemini(prompt)
+                raw_res = call_gemini(prompt)
                 
                 chapters_html = ""
-                parts = raw_text.split("###")
-                for part in parts:
-                    if part.strip():
-                        lines = part.strip().split("\n", 1)
-                        if len(lines) > 1:
-                            title = lines[0].strip()
-                            content = markdown.markdown(lines[1].strip())
-                            chapters_html += f"<div class='chapter'><h2 class='chapter-title'>{title}</h2><div class='chapter-content'>{content}</div></div>"
-
-                html_export = f"""
-                <!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta charset="utf-8">{PREMIUM_CSS}</head>
+                parts = raw_res.split("###")
+                for p in parts:
+                    if p.strip():
+                        lines = p.strip().split("\n", 1)
+                        title = lines[0].replace("제 ", "").strip()
+                        content = markdown.markdown(lines[1].strip()) if len(lines) > 1 else ""
+                        chapters_html += f"""
+                        <div class='chapter-header'>
+                            <div class='chapter-title'>{title}</div>
+                            <div class='methodology'>※ 자평명리/심리학 융합 분석</div>
+                        </div>
+                        <div class='chapter-content'>{content}</div>
+                        """
+                
+                final_html = f"""
+                <!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta charset="utf-8">{PREMIUM_STYLE_CSS}</head>
                 <body>
                 <div class="report-container">
-                    <div class="brand-header">
-                        <h1>솔 <span>운명상점</span></h1>
-                        <p>해처럼 굳건하게, 소나무처럼 푸르게</p>
-                        <div class="saju-info">{name1} & {name2} 시너지 리포트</div>
-                    </div>
+                    {logo_img_tag}
+                    <div class="report-header-title">[{name1}님] VIP 솔루션 리포트</div>
+                    <div class="report-header-subtitle">Premium Destiny Analysis</div>
+                    {greeting_html}
+                    <div class="saju-declaration">{name1}님의 명식은 {saju_val1} 입니다.</div>
                     {chapters_html}
-                    <div class="footer">두 분의 아름다운 인연과 밝은 미래를 진심으로 응원합니다.</div>
+                    <div class="footer">본 리포트는 솔 운명상점의 VVIP 전용 엔진으로 생성되었습니다.</div>
                 </div>
                 </body></html>
                 """
 
-            st.success("🎉 생성이 완료되었습니다! 아래 버튼을 눌러 리포트를 저장하거나 바로 확인하세요.")
-            
-            # 다운로드 버튼
-            filename = f"{name1}_개인분석.html" if mode == "👤 개인 분석" else f"{name1}_{name2}_궁합.html"
-            st.download_button(label="📥 결과물 스마트폰에 저장하기 (HTML)", data=html_export, file_name=filename, mime="text/html", use_container_width=True)
-            
-            # 화면에 바로 보여주기 (미리보기)
-            st.components.v1.html(html_export, height=800, scrolling=True)
+            else:
+                saju_val2 = calculate_saju(birth2, time2)
+                prompt = f"""
+                고객1: {name1}({gender1}, {saju_val1}) / 고객2: {name2}({gender2}, {saju_val2})
+                너는 '김다은_김지훈_프리미엄_궁합' 스타일의 시너지 리포트를 작성하는 마스터다. 
+                아래 8개 챕터를 반드시 포함하여 두 사람의 인연을 깊이 있게 분석하라.
+                문체는 정중하고 자연스러운 평문을 사용하라.
+
+                [필수 구성 8챕터]
+                1. 운명적 시너지 (두 사람 결합의 총평)
+                2. 상호 보완점 (서로가 서로에게 채워주는 에너지)
+                3. 소통과 다툼의 뇌관 (갈등의 원인과 예방법)
+                4. 경제적 합 (누가 돈을 관리해야 하는가)
+                5. 자녀 및 가족운 (가정을 꾸렸을 때의 흐름)
+                6. 시가/처가와의 합 (주변 인간관계 스탠스)
+                7. 향후 5년 파트너십 기상도 (비즈니스/연애 흐름)
+                8. 완벽한 팀을 위한 조언 (서로를 위한 약속)
+
+                [작성 형식 동일]
+                """
+                raw_res = call_gemini(prompt)
+                
+                chapters_html = ""
+                parts = raw_res.split("###")
+                for p in parts:
+                    if p.strip():
+                        lines = p.strip().split("\n", 1)
+                        title = lines[0].strip()
+                        content = markdown.markdown(lines[1].strip()) if len(lines) > 1 else ""
+                        chapters_html += f"""
+                        <div class='chapter-header'>
+                            <div class='chapter-title'>{title}</div>
+                            <div class='methodology'>※ 명리 조후 및 합충 분석</div>
+                        </div>
+                        <div class='chapter-content'>{content}</div>
+                        """
+
+                final_html = f"""
+                <!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta charset="utf-8">{PREMIUM_STYLE_CSS}</head>
+                <body>
+                <div class="report-container">
+                    {logo_img_tag}
+                    <div class="report-header-title">[{name1} & {name2}] 시너지 리포트</div>
+                    <div class="report-header-subtitle">Premium Partnership Harmony</div>
+                    {greeting_html}
+                    <div class="saju-declaration">{name1}({saju_val1})님과 {name2}({saju_val2})님의 결합 분석입니다.</div>
+                    {chapters_html}
+                    <div class="footer">두 분의 앞날에 밝은 기운이 가득하기를 솔 운명상점이 기원합니다.</div>
+                </div>
+                </body></html>
+                """
+
+            st.success("✅ 프리미엄 리포트가 완성되었습니다!")
+            st.download_button("📥 스마트폰에 리포트 저장하기", data=final_html, file_name=f"{name1}_리포트.html", mime="text/html", use_container_width=True)
+            st.components.v1.html(final_html, height=1000, scrolling=True)
