@@ -3,10 +3,9 @@ from google import genai
 from google.genai import types
 import datetime, re, math, time, os, base64
 import markdown
-import urllib.parse
 
 # 📱 프리미엄 모바일 레이아웃 설정
-st.set_page_config(page_title="솔 운명상점 Lite Premium V11", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="솔 운명상점 Lite Premium V13", layout="centered", initial_sidebar_state="collapsed")
 MODEL_NAME = 'gemini-2.5-pro'
 
 try:
@@ -142,6 +141,7 @@ details[open] summary::after { content: '▲'; }
 .chapter-content { padding: 25px; font-size: 15.5px; color: #333; background-color: #fff; }
 h3 { display: none; }
 
+/* 🌟 본문 내 표(Table) 프리미엄 스타일링 */
 .chapter-content table { width: 100%; border-collapse: collapse; margin: 5px 0 20px 0; font-size: 14.5px; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
 .chapter-content th { background-color: #F8FAFC; color: #0A192F; padding: 14px; text-align: center; font-weight: 800; border-bottom: 2px solid #0A192F; border-right: 1px solid #E2E8F0; }
 .chapter-content th:last-child { border-right: none; }
@@ -206,34 +206,34 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
             if mode == "👤 개인 사주 리포트":
                 prompt = f"""
                 고객: {name1} ({gender1}, 명식: {saju_list1})
-                너는 '솔 운명상점'의 마스터다. 인사말 없이 바로 결과만 출력하라.
+                너는 '솔 운명상점'의 정통 사주 마스터다. 인사말 없이 바로 결과만 출력하라.
                 
                 [작성 핵심 지침 - 매우 중요]
-                1. 요약(>) 블록 완전 삭제: 파트 제목 아래에 있던 요약 텍스트는 공간 낭비이므로 모두 삭제하라. 곧바로 표(Table)부터 시작하라.
-                2. 제1장 코어 에너지 프리미엄 강화 (가장 중요): 이 파트는 분량이 가장 길어야 한다. 반드시 2개의 표를 연속해서 넣어라. 첫 번째 표는 기본 명식(음양오행, 조후 등) 분석표, 두 번째 표는 특수 살(백호대살, 괴강살, 도화살, 화개살, 역마살 등 명식에 있는 것) 분석표다. 흉살로 풀지 말고 '강철의 제왕', '치명적 매력' 등 무게감 있는 프리미엄 용어로 재해석하라.
-                3. 제7장 전술 기상도 월별 세분화: 2026년과 2027년의 운세 흐름을 단순히 뭉뚱그리지 말고, 월별(또는 주요 분기별)로 세밀하게 쪼개어 이모티콘과 함께 상세한 표로 나열하라.
-                4. 표(Table) 최적화: 표 안의 내용은 긴 문장 없이 직관적인 이모티콘을 활용하여 명사형 키워드 위주로 극도로 요약하라.
-                5. 서술 최소화 및 중복 금지: 1장을 제외한 본문 텍스트는 1~2문단으로 짧게 서술하되, 이전 파트의 내용이 뒤에서 반복되지 않도록 철저히 통제하라.
-                6. 모든 파트에 100% 표 삽입 (선표/후서술): 9개 파트 모두 마크다운 표를 가장 먼저 띄우고 그 아래에 서술하라.
+                1. 한글화 및 용어 순화: 50대 이상이 이해하기 쉽도록 '코어에너지, 릴레이션십, 마인드' 등의 영어를 쓰지 말고 '타고난 핵심 명식, 마음가짐, 실천 지침' 등 100% 한글을 사용하라. '용신'은 '나를 돕는 수호 기운'으로 풀어서 표기하라.
+                2. 파트 세분화: 기존 1장을 분리하여 1장은 '기본 명식 분석', 2장은 '특수신살 해석'으로 완전히 나누어 각각 표와 서술을 작성하라.
+                3. 전술 기상도 압축: 2026-2027년 운세표에서 '전술/행동 강령' 칸에는 긴 문장 대신 '도전', '집중', '관망' 등 **2~4글자의 짧고 직관적인 단어**만 적어 모바일 표 가독성을 높여라.
+                4. 요약(>) 블록 삭제: 불필요한 요약 텍스트 없이 바로 표(Table)부터 시작하라.
+                5. 선표/후서술 원칙: 10개의 모든 파트에 반드시 [마크다운 표]를 먼저 띄우고 그 아래에 1~2문단의 [서술]을 작성하라. 중복 서술은 엄격히 금지한다.
 
-                [필수 구성 9파트]
-                1. ✨ 코어 에너지 (기본 명식 표 + 특수 신살 표 필수. 분량 최대화)
-                2. 🌗 성격의 명암 (강약점 키워드 대비표)
-                3. 💎 재물운의 그릇 (재물 시기/형태 요약표)
-                4. 🚀 성공의 포지션 (추천 직무/분야 요약표)
-                5. 🤝 인복과 귀인 (귀인/악연 특징표)
-                6. 🧘 헬스케어 가이드 (주의 장기/관리법 요약표)
-                7. 🌤️ 2026-2027 전술 기상도 (26~27년 월별/분기별 상세 운세표 필수)
-                8. 🍀 행운의 개운법 (컬러/방위 요약표)
-                9. 💡 마스터의 최종 솔루션 (실천 지침 요약표)
+                [필수 구성 10파트]
+                1. ✨ 타고난 핵심 명식 (음양오행, 조후, 수호 기운 분석표 -> 서술)
+                2. 💫 특수 기운과 신살 (명식 내 특수신살 1~2개를 프리미엄 현대어로 풀이한 표 -> 서술)
+                3. 🌗 성격의 명암 (강점/약점 키워드 대비표 -> 서술)
+                4. 💎 재물운의 그릇 (재물 모으는 시기/형태 표 -> 서술)
+                5. 🚀 성공의 자리 (추천 직무/분야 표 -> 서술)
+                6. 🤝 인복과 귀인 (귀인/악연 구별표 -> 서술)
+                7. 🧘 건강과 활력 (주의 장기/건강 관리표 -> 서술)
+                8. 🌤️ 2026-2027 운세 기상도 (분기별/월별 상세 운세표. 핵심 전술은 2~4글자 단어로만 작성 -> 서술)
+                9. 🍀 행운을 부르는 비법 (컬러/방위/숫자 표 -> 서술)
+                10. 💡 마스터의 최종 솔루션 (마음가짐, 실천 지침 표 -> 서술)
 
                 [출력 형식 강제]
                 ### 파트제목
-                | 항목 | 분석 내용 |
+                | 구분 | 분석 내용 |
                 |---|---|
                 | 내용 | 내용 |
                 
-                (표 아래에 깊이 있는 본문 서술)
+                (표 아래에 깊이 있는 본문 서술 1~2문단)
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
                 
@@ -243,32 +243,31 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 
                 prompt = f"""
                 고객1: {name1}({gender1}, 명식: {saju_list1}) / 고객2: {name2}({gender2}, 명식: {saju_list2})
-                너는 '솔 운명상점'의 궁합 마스터다. 인사말 없이 바로 결과를 출력하라.
+                너는 '솔 운명상점'의 정통 궁합 마스터다. 인사말 없이 바로 결과를 출력하라.
                 
                 [작성 핵심 지침 - 매우 중요]
-                1. 요약(>) 블록 완전 삭제: 파트 제목 아래의 요약 줄은 완전히 삭제하고 곧바로 표(Table)부터 띄워라.
-                2. 제7장 단기 기상도 월별 세분화: 2026년과 2027년 두 사람의 궁합 흐름을 월별(또는 분기별)로 쪼개어 이모티콘과 함께 상세한 표로 나열하라.
-                3. 표(Table) 최적화: 표 내용은 긴 문장 없이 직관적인 이모티콘과 명사형 키워드로 극도로 요약하라.
-                4. 서술 최소화: 본문 텍스트는 1~2문단으로 짧게 서술하되 깊이 있게 작성하라.
-                5. 모든 파트에 100% 표 삽입 (선표/후서술): 8개의 모든 파트에 두 사람을 비교하는 표를 먼저 띄우고 서술하라.
+                1. 한글화 및 용어 순화: 영어를 쓰지 말고 '타고난 핵심 명식, 마음가짐, 대인 관계' 등 품격 있는 한글을 사용하라.
+                2. 전술 기상도 압축: 2026-2027년 운세표의 '전술/행동 강령' 칸에는 긴 문장을 빼고 '도전', '집중', '양보' 등 **2~4글자의 짧고 직관적인 단어**만 적어 모바일 표 가독성을 확보하라.
+                3. 요약(>) 블록 삭제: 불필요한 요약 줄 없이 곧바로 표(Table)부터 시작하라.
+                4. 선표/후서술 원칙: 8개의 모든 파트에 반드시 두 사람을 비교/분석하는 [마크다운 표]를 먼저 띄우고 그 아래에 1~2문단의 [서술]을 작성하라.
 
                 [필수 구성 8파트]
-                1. 🌌 운명적 시너지 (시너지 요약표)
-                2. 🧩 상호 보완의 에너지 (각자의 역할 키워드표)
-                3. ⚡ 소통과 갈등의 뇌관 (갈등 원인/해결 요약표)
-                4. 💰 경제적 합의 그릇 (재물 성향 요약표)
-                5. 👨‍👩‍👧‍👦 함께 그리는 미래 (가족운 키워드표)
-                6. 🏡 시가/처가와의 유기성 (가족 대처법 요약표)
-                7. 📈 2026-2027 단기 기상도 (26~27년 월별/분기별 상세 흐름표 필수)
-                8. 🤝 파트너십 개운법 (팀워크 실천 요약표)
+                1. 🌌 운명적 시너지 (총점 및 시너지 요약표 -> 서술)
+                2. 🧩 서로를 채우는 기운 (각자의 역할 키워드표 -> 서술)
+                3. ⚡ 소통과 다툼의 뇌관 (갈등 원인/해결 표 -> 서술)
+                4. 💰 경제적 합의 그릇 (재물 성향 표 -> 서술)
+                5. 👨‍👩‍👧‍👦 함께 그리는 미래 (가족운/자녀운 표 -> 서술)
+                6. 🏡 가족과의 인연 (가족관계 대처법 표 -> 서술)
+                7. 📈 2026-2027 운세 기상도 (분기별/월별 상세 흐름표. 핵심 행동은 2~4글자 단어로만 작성 -> 서술)
+                8. 🤝 완벽한 팀을 위한 약속 (실천 지침 표 -> 서술)
 
                 [출력 형식 강제]
                 ### 파트제목
-                | 항목 | {name1} | {name2} |
+                | 구분 | {name1} | {name2} |
                 |---|---|---|
                 | 내용 | 내용 | 내용 |
                 
-                (표 아래에 깊이 있는 본문 서술)
+                (표 아래에 깊이 있는 본문 서술 1~2문단)
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
             
@@ -302,19 +301,15 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
             </body></html>
             """
 
-            sms_text = f"안녕하세요 {display_name}님, 솔 운명상점 VIP 리포트입니다. 문자에 첨부된 파일을 톡 눌러서 열어주세요!"
-            encoded_sms = urllib.parse.quote(sms_text)
+            st.success("✅ 리포트가 성공적으로 완성되었습니다!")
 
-            st.success("✅ 리포트가 성공적으로 완성되었습니다! 아래 순서대로 발송해주세요.")
-
-            col_btn1, col_btn2 = st.columns(2)
-            with col_btn1:
-                st.download_button("1️⃣ 폰에 리포트 저장", data=final_html, file_name=f"{name1}_솔운명상점_리포트.html", mime="text/html", use_container_width=True)
-            with col_btn2:
-                st.markdown(f"""
-                <a href="sms:?body={encoded_sms}" style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 40px; background-color: #0A192F; color: #D4AF37; border: 1px solid #0A192F; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 800; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    2️⃣ 문자 앱 열기
-                </a>
-                """, unsafe_allow_html=True)
-                
+            # 🔘 직관적인 다운로드 버튼 단독 배치
+            st.download_button(
+                label="📥 폰에 리포트 저장하기", 
+                data=final_html, 
+                file_name=f"{name1}_솔운명상점_리포트.html", 
+                mime="text/html", 
+                use_container_width=True
+            )
+            
             st.components.v1.html(final_html, height=1200, scrolling=True)
