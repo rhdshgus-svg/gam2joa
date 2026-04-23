@@ -124,7 +124,7 @@ def extract_special_star(text):
 
 
 # ==========================================
-# 🎨 3. 고품격 보고서 스타일 CSS (공유 버튼 디자인 포함)
+# 🎨 3. 고품격 보고서 스타일 CSS (공유 배너 디자인 포함)
 # ==========================================
 PREMIUM_STYLE_CSS = """
 <style>
@@ -167,27 +167,62 @@ h3 { display: none; }
 
 .footer { text-align: center; margin-top: 60px; font-size: 12px; color: #CBD5E0; border-top: 1px solid #EDF2F7; padding-top: 25px; }
 
-/* 🌟 새로운 네이티브 공유 버튼 CSS */
+/* 🌟 하단 공유 배너 CSS (영업용 멘트 + 버튼) */
+.share-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #F8FAFC;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 40px;
+    border: 1px solid #E2E8F0;
+    border-left: 5px solid #FEE500;
+}
+.share-text {
+    font-size: 14.5px;
+    color: #111;
+    font-weight: 600;
+    line-height: 1.5;
+    flex: 1;
+    padding-right: 15px;
+}
+.share-text span {
+    color: #0A192F;
+    font-weight: 900;
+}
 .share-btn {
     background-color: #FEE500;
     color: #000000;
     border: none;
-    border-radius: 12px;
-    padding: 18px 20px;
-    font-size: 16px;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 14px;
     font-weight: 800;
     cursor: pointer;
-    width: 100%;
-    margin-top: 40px;
+    white-space: nowrap;
     font-family: 'Pretendard', sans-serif;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
 }
 .share-btn:hover { background-color: #FDD835; transform: translateY(-2px); }
+
+/* 모바일 화면에서 세로로 자동 정렬되도록 반응형 추가 */
+@media (max-width: 480px) {
+    .share-banner {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px 15px;
+    }
+    .share-text {
+        padding-right: 0;
+        margin-bottom: 15px;
+    }
+    .share-btn {
+        width: 100%;
+        padding: 14px;
+    }
+}
 </style>
 """
 
@@ -438,9 +473,15 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 {f'<div style="margin-bottom:10px; font-weight:800; color:#0A192F; font-size:15px; text-align:center;">[{name2}님의 명식]</div>' + saju_table_html2 if mode == "💞 궁합 시너지 리포트" else ""}
                 {chapters_html}
                 
-                <button class="share-btn" onclick="triggerShare()">
-                    💬 친구들에게 내 명식 결과 공유하기
-                </button>
+                <div class="share-banner">
+                    <div class="share-text">
+                        ✨ 당신은 상위 <span>{top_percent}%</span>의 <span>{feature_name}</span>을(를) 가진 귀한 분이군요!<br>
+                        정말 특별한 명식입니다. 주변에 자랑해보세요 🤫
+                    </div>
+                    <button class="share-btn" onclick="triggerShare()">
+                        💬 공유하기
+                    </button>
+                </div>
 
                 <div class="footer">솔 운명상점의 VVIP 전용 엔진으로 생성되었습니다.</div>
             </div>
@@ -456,7 +497,6 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                             text: shareText
                         }}).catch((error) => console.log('공유 취소됨', error));
                     }} else {{
-                        // 구형 브라우저 등에서 지원하지 않을 경우 안내창 띄움
                         alert("아래 텍스트를 복사하여 친구에게 전달해보세요!\\n\\n" + shareText);
                     }}
                 }}
