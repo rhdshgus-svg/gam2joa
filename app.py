@@ -491,54 +491,72 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                     const shareTitle = '🔮 솔 운명상점 VIP 리포트';
                     const shareText = '✨ [솔 운명상점] {name1}님의 명식 분석 결과\\n\\n당신의 사주에서 가장 빛나는 기운은 바로 [ {feature_name} ]! 🌟\\n이는 전체 인구 중 상위 {top_percent}%에게만 허락되는 아주 특별하고 귀한 매력 자본입니다.\\n\\n타고난 그릇과 숨겨진 무기를 제대로 알고 활용하면 인생의 타이밍이 달라집니다.\\n\\n👇 나도 내 운명의 숨겨진 무기가 궁금하다면?\\n👉 내 사주 보러가기: {OPEN_CHAT_LINK}';
                     
-                    // 1단계: 스마트폰 기본 공유창 시도
                     if (navigator.share) {{
                         navigator.share({{
                             title: shareTitle,
                             text: shareText
                         }}).catch((error) => {{
-                            // 🚨 아이폰이 오프라인 파일이라고 공유를 막아버리면 여기로 빠집니다 (플랜 B 가동)
-                            fallbackCopyTextToClipboard(shareText);
+                            showCopyModal(shareText);
                         }});
                     }} else {{
-                        // 구형 브라우저일 경우
-                        fallbackCopyTextToClipboard(shareText);
+                        showCopyModal(shareText);
                     }}
                 }}
 
-                // 🌟 플랜 B: 마법의 텍스트 자동 복사 함수
-                function fallbackCopyTextToClipboard(text) {{
+                // 🌟 예쁜 복사 전용 창을 화면에 직접 그려주는 마법의 함수
+                function showCopyModal(text) {{
+                    // 1. 배경을 살짝 어둡게 (오버레이)
+                    var overlay = document.createElement("div");
+                    overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:flex;justify-content:center;align-items:center;padding:20px;box-sizing:border-box;";
+                    
+                    // 2. 하얀색 메모장 박스
+                    var modal = document.createElement("div");
+                    modal.style.cssText = "background:#fff;padding:25px;border-radius:12px;width:100%;max-width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);";
+                    
+                    var title = document.createElement("h3");
+                    title.innerText = "💬 친구에게 자랑하기";
+                    title.style.cssText = "margin:0 0 15px 0;font-size:18px;color:#0A192F;";
+                    
+                    // 3. 텍스트 영역 (꾹 눌러서 복사 가능)
                     var textArea = document.createElement("textarea");
                     textArea.value = text;
-                    
-                    // 화면에 안 보이게 숨김 처리
-                    textArea.style.position = "fixed";
-                    textArea.style.top = "0";
-                    textArea.style.left = "0";
-                    textArea.style.width = "2em";
-                    textArea.style.height = "2em";
-                    textArea.style.padding = "0";
-                    textArea.style.border = "none";
-                    textArea.style.outline = "none";
-                    textArea.style.boxShadow = "none";
-                    textArea.style.background = "transparent";
-                    
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
+                    textArea.style.cssText = "width:100%;height:180px;padding:15px;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:15px;font-size:14px;color:#333;resize:none;box-sizing:border-box;background:#F8FAFC;font-family:inherit;";
+                    textArea.readOnly = true; 
 
-                    try {{
-                        var successful = document.execCommand('copy');
-                        if(successful) {{
-                            alert("✅ 자랑할 멘트가 '복사'되었습니다!\\n\\n카카오톡 채팅방에 들어가서 [붙여넣기]를 해주세요.");
-                        }} else {{
-                            alert("👇 아래 텍스트를 복사하여 친구에게 전달해보세요!\\n\\n" + text);
+                    // 4. 복사 버튼 (클릭 시 자동 복사)
+                    var copyBtn = document.createElement("button");
+                    copyBtn.innerText = "📋 복사하기";
+                    copyBtn.style.cssText = "background:#FEE500;color:#000;border:none;padding:14px;border-radius:8px;font-weight:800;font-size:15px;width:100%;margin-bottom:10px;cursor:pointer;";
+                    
+                    var closeBtn = document.createElement("button");
+                    closeBtn.innerText = "닫기";
+                    closeBtn.style.cssText = "background:#E2E8F0;color:#333;border:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px;width:100%;cursor:pointer;";
+
+                    // 🎯 버튼 눌렀을 때의 동작
+                    copyBtn.onclick = function() {{
+                        textArea.select();
+                        textArea.setSelectionRange(0, 99999); // 모바일 기기 호환성
+                        try {{
+                            document.execCommand('copy');
+                            copyBtn.innerText = "✅ 복사 완료! 카톡에 붙여넣으세요";
+                            copyBtn.style.background = "#0A192F";
+                            copyBtn.style.color = "#D4AF37";
+                        }} catch (err) {{
+                            alert("위의 텍스트를 꾹 눌러서 직접 복사해주세요!");
                         }}
-                    }} catch (err) {{
-                        alert("👇 아래 텍스트를 복사하여 친구에게 전달해보세요!\\n\\n" + text);
-                    }}
+                    }};
 
-                    document.body.removeChild(textArea);
+                    closeBtn.onclick = function() {{
+                        document.body.removeChild(overlay);
+                    }};
+
+                    // 조립해서 화면에 띄우기
+                    modal.appendChild(title);
+                    modal.appendChild(textArea);
+                    modal.appendChild(copyBtn);
+                    modal.appendChild(closeBtn);
+                    overlay.appendChild(modal);
+                    document.body.appendChild(overlay);
                 }}
             </script>
             </body></html>
