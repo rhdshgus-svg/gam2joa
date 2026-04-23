@@ -3,6 +3,7 @@ from google import genai
 from google.genai import types
 import datetime, re, math, time, os, base64
 import markdown
+import streamlit.components.v1 as components
 
 # 📱 프리미엄 모바일 레이아웃 설정
 st.set_page_config(page_title="솔 운명상점 Lite Premium V21", layout="centered", initial_sidebar_state="collapsed")
@@ -108,7 +109,93 @@ def create_saju_table(saju_list):
     return html
 
 # ==========================================
-# 🎨 2. 고품격 보고서 스타일 CSS
+# 🎯 2. 바이럴 루프용 기운 추출기 & 공유 버튼
+# ==========================================
+def extract_special_star(text):
+    # AI가 작성한 리포트에서 특정 신살 키워드를 찾아 매력적인 희소성 %와 매칭
+    stars_db = {
+        "천을귀인": "1", "도화": "3", "괴강": "2", "백호": "4", 
+        "홍염": "3", "화개": "5", "역마": "6", "현침": "7"
+    }
+    for star, percent in stars_db.items():
+        if star in text:
+            return f"{star}의 기운", percent
+    # 매칭되는 것이 없을 경우 기본값 세팅
+    return "고유한 재물과 명예의 기운", "5"
+
+def kakao_share_button(name, feature_name, top_percent):
+    KAKAO_JS_KEY = "01f997d7f23f68573e631fff1409d42a"
+    # 🚨 로컬 테스트 완료 후 실제 웹 배포 주소로 반드시 변경하세요!
+    APP_URL = "hhttps://gam2joa.streamlit.app" 
+    
+    html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TinOzi8i1D02Q5+Z2YofI5kZf6wZ9f2ZfL7XnN2vB4r05D+Hl1GZkHts+W2H+f" crossorigin="anonymous"></script>
+        <style>
+            @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+            .kakao-btn {{
+                background-color: #FEE500;
+                color: #000000;
+                border: none;
+                border-radius: 12px;
+                padding: 18px 20px;
+                font-size: 16px;
+                font-weight: 800;
+                cursor: pointer;
+                width: 100%;
+                font-family: 'Pretendard', sans-serif;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }}
+            .kakao-btn:hover {{ background-color: #FDD835; transform: translateY(-2px); }}
+            body {{ margin: 0; padding: 10px 0; background-color: #f4f4f5; }}
+        </style>
+    </head>
+    <body>
+        <button class="kakao-btn" onclick="shareMessage()">
+            💬 내 귀한 명식 카톡으로 자랑하기
+        </button>
+
+        <script>
+            if (!Kakao.isInitialized()) {{
+                Kakao.init('{KAKAO_JS_KEY}');
+            }}
+
+            function shareMessage() {{
+                Kakao.Share.sendDefault({{
+                    objectType: 'feed',
+                    content: {{
+                        title: '🔮 솔 운명상점 VIP 리포트',
+                        description: '{name}님의 명식에서 가장 빛나는 기운은 [{feature_name}]입니다. 이는 전체 상위 {top_percent}%에게만 허락되는 매력 자본입니다.',
+                        // 🚨 썸네일 이미지 주소 (웹상에 호스팅된 이미지 링크 필수)
+                        imageUrl: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=600&auto=format&fit=crop', 
+                        link: {{ mobileWebUrl: '{APP_URL}', webUrl: '{APP_URL}' }},
+                    }},
+                    buttons: [
+                        {{
+                            title: '나의 숨겨진 무기 확인하기',
+                            link: {{ mobileWebUrl: '{APP_URL}', webUrl: '{APP_URL}' }},
+                        }},
+                    ],
+                }});
+            }}
+        </script>
+    </body>
+    </html>
+    """
+    components.html(html_code, height=90)
+
+
+# ==========================================
+# 🎨 3. 고품격 보고서 스타일 CSS
 # ==========================================
 PREMIUM_STYLE_CSS = """
 <style>
@@ -154,7 +241,7 @@ h3 { display: none; }
 """
 
 # ==========================================
-# 🚀 3. 메인 앱 UI 및 로직
+# 🚀 4. 메인 앱 UI 및 로직
 # ==========================================
 st.markdown("<h2 style='text-align: center; color: #0A192F; font-weight: 900;'>솔 운명상점 <span style='color: #D4AF37;'>Lite Premium</span></h2>", unsafe_allow_html=True)
 
@@ -356,6 +443,9 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
             
+            # --- AI 응답 텍스트에서 강력한 신살 기운 추출 ---
+            feature_name, top_percent = extract_special_star(res)
+
             # HTML 조립
             chapters_html = ""
             parts = res.split("###")
@@ -391,6 +481,7 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
 
             st.success("✅ 리포트가 성공적으로 완성되었습니다! 아래 버튼을 눌러 폰에 저장하세요.")
 
+            # 리포트 다운로드 버튼
             st.download_button(
                 label="📥 폰에 리포트 저장하기", 
                 data=final_html, 
@@ -399,4 +490,9 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 use_container_width=True
             )
             
+            # 화면에 리포트 출력
             st.components.v1.html(final_html, height=1200, scrolling=True)
+
+            # 🔥 리포트 출력 후 카카오톡 공유 버튼 렌더링
+            st.markdown("<br>", unsafe_allow_html=True)
+            kakao_share_button(name1, feature_name, top_percent)
