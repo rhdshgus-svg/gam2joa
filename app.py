@@ -491,14 +491,54 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                     const shareTitle = '🔮 솔 운명상점 VIP 리포트';
                     const shareText = '✨ [솔 운명상점] {name1}님의 명식 분석 결과\\n\\n당신의 사주에서 가장 빛나는 기운은 바로 [ {feature_name} ]! 🌟\\n이는 전체 인구 중 상위 {top_percent}%에게만 허락되는 아주 특별하고 귀한 매력 자본입니다.\\n\\n타고난 그릇과 숨겨진 무기를 제대로 알고 활용하면 인생의 타이밍이 달라집니다.\\n\\n👇 나도 내 운명의 숨겨진 무기가 궁금하다면?\\n👉 내 사주 보러가기: {OPEN_CHAT_LINK}';
                     
+                    // 1단계: 스마트폰 기본 공유창 시도
                     if (navigator.share) {{
                         navigator.share({{
                             title: shareTitle,
                             text: shareText
-                        }}).catch((error) => console.log('공유 취소됨', error));
+                        }}).catch((error) => {{
+                            // 🚨 아이폰이 오프라인 파일이라고 공유를 막아버리면 여기로 빠집니다 (플랜 B 가동)
+                            fallbackCopyTextToClipboard(shareText);
+                        }});
                     }} else {{
-                        alert("아래 텍스트를 복사하여 친구에게 전달해보세요!\\n\\n" + shareText);
+                        // 구형 브라우저일 경우
+                        fallbackCopyTextToClipboard(shareText);
                     }}
+                }}
+
+                // 🌟 플랜 B: 마법의 텍스트 자동 복사 함수
+                function fallbackCopyTextToClipboard(text) {{
+                    var textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    
+                    // 화면에 안 보이게 숨김 처리
+                    textArea.style.position = "fixed";
+                    textArea.style.top = "0";
+                    textArea.style.left = "0";
+                    textArea.style.width = "2em";
+                    textArea.style.height = "2em";
+                    textArea.style.padding = "0";
+                    textArea.style.border = "none";
+                    textArea.style.outline = "none";
+                    textArea.style.boxShadow = "none";
+                    textArea.style.background = "transparent";
+                    
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+
+                    try {{
+                        var successful = document.execCommand('copy');
+                        if(successful) {{
+                            alert("✅ 자랑할 멘트가 '복사'되었습니다!\\n\\n카카오톡 채팅방에 들어가서 [붙여넣기]를 해주세요.");
+                        }} else {{
+                            alert("👇 아래 텍스트를 복사하여 친구에게 전달해보세요!\\n\\n" + text);
+                        }}
+                    }} catch (err) {{
+                        alert("👇 아래 텍스트를 복사하여 친구에게 전달해보세요!\\n\\n" + text);
+                    }}
+
+                    document.body.removeChild(textArea);
                 }}
             </script>
             </body></html>
