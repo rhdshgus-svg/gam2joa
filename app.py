@@ -3,6 +3,7 @@ from google import genai
 from google.genai import types
 import datetime, re, math, time, os, base64
 import markdown
+import streamlit.components.v1 as components
 
 # 📱 프리미엄 모바일 레이아웃 설정
 st.set_page_config(page_title="솔 운명상점 Lite Premium V21", layout="centered", initial_sidebar_state="collapsed")
@@ -123,7 +124,7 @@ def extract_special_star(text):
 
 
 # ==========================================
-# 🎨 3. 고품격 보고서 스타일 CSS (카카오 버튼 디자인 포함)
+# 🎨 3. 고품격 보고서 스타일 CSS (공유 버튼 디자인 포함)
 # ==========================================
 PREMIUM_STYLE_CSS = """
 <style>
@@ -166,8 +167,8 @@ h3 { display: none; }
 
 .footer { text-align: center; margin-top: 60px; font-size: 12px; color: #CBD5E0; border-top: 1px solid #EDF2F7; padding-top: 25px; }
 
-/* 🌟 카카오톡 공유 버튼 CSS */
-.kakao-btn {
+/* 🌟 새로운 네이티브 공유 버튼 CSS */
+.share-btn {
     background-color: #FEE500;
     color: #000000;
     border: none;
@@ -186,7 +187,7 @@ h3 { display: none; }
     justify-content: center;
     gap: 8px;
 }
-.kakao-btn:hover { background-color: #FDD835; transform: translateY(-2px); }
+.share-btn:hover { background-color: #FDD835; transform: translateY(-2px); }
 </style>
 """
 
@@ -243,72 +244,79 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 고객: {name1} ({gender1}, 명식: {saju_list1})
                 너는 '솔 운명상점'의 정통 사주 마스터다. 
                 
-                [시스템 강제 지침 - 에러 방지 및 완성도 100% 보장]
-                1. 서론/인사말 원천 차단: 절대 인사말을 쓰지 마라. 무조건 `### 1. ✨ 타고난 핵심 명식`으로 시작하라.
-                2. 호흡 조절: AI의 출력 한계로 인해 글이 중간에 끊기는 것을 방지하기 위해, 모든 서술 파트는 불필요한 미사여구를 빼고 **핵심 위주로 밀도 있게 1~2문단만** 작성하라.
-                3. 파트 분리 엄수: 반드시 아래 제공된 1~9 파트의 템플릿을 그대로 복사해서 사용하라.
-                4. 이모티콘 활용: 표 안의 텍스트가 길어지지 않도록 의미를 돕는 이모티콘을 추가하여 요약하라.
-                5. 신살 전체 나열: 제2장 표 작성 시, 명식에 존재하는 모든 신살을 찾아 빠짐없이 나열하라.
-                6. 분량 엄수: 내용이 중간에 절대 끊기지 않도록 분량을 철저히 조절하여, **반드시 9번 파트(마스터의 최종 솔루션)까지 완벽하게 끝맺어라.**
+                [시스템 강제 지침 - 표 깨짐 방지 및 완성도 100% 보장]
+                1. 서론/인사말 원천 차단: 절대 인사말을 쓰지 마라.
+                2. 호흡 조절: 글이 끊기지 않게 각 서술은 핵심만 밀도 있게 1~2문단 작성.
+                3. **[매우 중요] 표와 텍스트 분리:** 모든 파트에서 표(`|---|---|` 형태)를 작성한 직후에는 **반드시 '엔터'를 두 번 쳐서 완벽한 빈 줄을 하나 만든 뒤**에 텍스트 서술을 시작하라. 빈 줄이 없으면 표가 깨진다.
+                4. 반드시 9번 파트까지 완벽하게 끝맺어라.
 
-                [출력 템플릿]
+                [출력 템플릿] (아래 양식을 그대로 복사해서 사용하되, 표와 텍스트 사이의 '빈 줄'을 꼭 지켜라)
                 
                 ### 1. ✨ 타고난 핵심 명식
                 | 구분 | 분석 내용 |
                 |---|---|
                 | 오행 분포 | (🔥화O, 💧수O, 🌳목O, 🪨토O, ⚔️금O) 개수 표기 |
                 | 필요 기운 | 내용 |
-                (천간/지지 용어를 활용한 밀도 있는 1~2문단 서술)
+
+                (여기에 천간/지지 용어를 활용한 밀도 있는 1~2문단 서술)
 
                 ### 2. 💫 특수 기운과 신살
                 | 신살명 | 현대적 해석 |
                 |---|---|
                 | (신살 나열) | 내용 |
-                (신살이 삶의 무기가 되는 과정을 1~2문단 서술)
+
+                (여기에 신살이 삶의 무기가 되는 과정을 1~2문단 서술)
 
                 ### 3. 💎 재물운의 그릇
                 | 구분 | 핵심 흐름 |
                 |---|---|
                 | 재물 성향 | 내용 |
                 | 발복 시기 | 내용 |
-                (서술 1문단)
+
+                (여기에 서술 1문단)
 
                 ### 4. 🚀 성공의 자리
                 | 구분 | 추천 분야 |
                 |---|---|
                 | 직무 성향 | 내용 |
-                (서술 1문단)
+
+                (여기에 서술 1문단)
 
                 ### 5. 🤝 인복과 귀인
                 | 구분 | 분석 내용 |
                 |---|---|
                 | 조심할 인연 | 내용 |
-                (서술 1문단)
+
+                (여기에 서술 1문단)
 
                 ### 6. 🧘 건강과 활력
                 | 구분 | 분석 내용 |
                 |---|---|
                 | 주의 장기 | 내용 |
-                (서술 1문단)
+
+                (여기에 서술 1문단)
 
                 ### 7. 🌤️ 2026-2027 운세 기상도
                 | 시기 | 핵심 흐름 | 행동 |
                 |---|---|---|
                 | 26년 하반기 | 내용 | 🔍 관망 |
                 | 27년 상반기 | 내용 | 🎯 집중 |
-                (서술 1문단)
+
+                (여기에 서술 1문단)
 
                 ### 8. 🍀 행운을 부르는 비법
                 | 구분 | 행운의 상징 |
                 |---|---|
                 | 컬러 | 내용 |
-                (서술 1문단)
+
+                (여기에 서술 1문단)
 
                 ### 9. 💡 마스터의 최종 솔루션
                 | 구분 | 실천 지침 |
                 |---|---|
                 | 행동 지침 | 내용 |
-                (서술 1문단)
+
+                (여기에 서술 1문단)
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
                 
@@ -320,10 +328,11 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 고객1: {name1}({gender1}, 명식: {saju_list1}) / 고객2: {name2}({gender2}, 명식: {saju_list2})
                 너는 '솔 운명상점'의 정통 궁합 마스터다. 
                 
-                [시스템 강제 지침 - 완성도 100% 보장]
-                1. 서론 금지: 무조건 `### 1. 🌌 운명적 시너지` 로 시작하라.
-                2. 호흡 조절: 글이 끊기지 않게 각 서술은 핵심만 밀도 있게 1~2문단 작성.
-                3. 반드시 아래 제공된 1~8 파트의 템플릿을 그대로 복사해서 사용하며 **8번 파트까지 완벽하게 끝맺어라.**
+                [시스템 강제 지침 - 표 깨짐 방지 및 완성도 보장]
+                1. 서론 금지.
+                2. 호흡 조절: 글이 끊기지 않게 각 서술은 핵심만 1~2문단 작성.
+                3. **[매우 중요] 표와 텍스트 분리:** 표를 작성한 후 반드시 **빈 줄(엔터)**을 넣고 텍스트를 시작하라.
+                4. 반드시 8번 파트까지 완벽히 끝맺어라.
 
                 [출력 템플릿]
                 
@@ -331,36 +340,42 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 | 구분 | {name1} | {name2} |
                 |---|---|---|
                 | 총평 | 내용 | 내용 |
+
                 (서술 1~2문단)
 
                 ### 2. 🧩 서로를 채우는 기운
                 | 구분 | {name1} | {name2} |
                 |---|---|---|
                 | 역할 | 내용 | 내용 |
+
                 (서술 1~2문단)
 
                 ### 3. ⚡ 소통과 다툼의 뇌관
                 | 구분 | 원인 |
                 |---|---|
                 | 갈등 | 내용 |
+
                 (서술 1문단)
 
                 ### 4. 💰 경제적 합의 그릇
                 | 구분 | 성향 |
                 |---|---|
                 | 재물 | 내용 |
+
                 (서술 1문단)
 
                 ### 5. 👨‍👩‍👧‍👦 함께 그리는 미래
                 | 구분 | 흐름 |
                 |---|---|
                 | 방향 | 내용 |
+
                 (서술 1문단)
 
                 ### 6. 🏡 가족과의 인연
                 | 구분 | 대처법 |
                 |---|---|
                 | 조언 | 내용 |
+
                 (서술 1문단)
 
                 ### 7. 📈 2026-2027 운세 기상도
@@ -368,12 +383,14 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 |---|---|---|
                 | 26년 하반기 | 내용 | 🤝 양보 |
                 | 27년 상반기 | 내용 | 🎯 집중 |
+
                 (서술 1문단)
 
                 ### 8. 🤝 완벽한 팀을 위한 약속
                 | 구분 | 지침 |
                 |---|---|
                 | 약속 | 내용 |
+
                 (서술 1문단)
                 """
                 res = client.models.generate_content(model=MODEL_NAME, contents=prompt, config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=8192)).text.strip()
@@ -390,23 +407,25 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                     title = re.sub(r'^[\d\.\s\*#]+', '', lines[0]).strip() 
                     
                     if len(lines) > 1 and title:
-                        content = markdown.markdown(lines[1].strip(), extensions=['tables'])
+                        content = lines[1].strip()
+                        # 🚨 [핵심 방어 코드] 표(마지막이 |로 끝나는 줄) 바로 밑에 텍스트가 붙어있으면 강제로 빈 줄을 넣어 표 깨짐을 막음
+                        content = re.sub(r'(\|\s*\n)(?!\s*\|)', r'\1\n', content)
+                        
+                        html_content = markdown.markdown(content, extensions=['tables'])
                         chapters_html += f"""
                         <details>
                             <summary>{title}</summary>
-                            <div class='chapter-content'>{content}</div>
+                            <div class='chapter-content'>{html_content}</div>
                         </details>
                         """
 
-            # 🚀 카카오톡 공유 버튼 & SDK가 포함된 최종 고객용 HTML
+            # 🚀 네이티브 공유 API(Web Share API)가 포함된 최종 고객용 HTML
             APP_URL = "https://gam2joa.streamlit.app"
-            KAKAO_JS_KEY = "01f997d7f23f68573e631fff1409d42a"
 
             final_html = f"""
             <!DOCTYPE html><html><head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <meta charset="utf-8">
-            <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TinOzi8i1D02Q5+Z2YofI5kZf6wZ9f2ZfL7XnN2vB4r05D+Hl1GZkHts+W2H+f" crossorigin="anonymous"></script>
             {PREMIUM_STYLE_CSS}
             </head>
             <body>
@@ -419,33 +438,27 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                 {f'<div style="margin-bottom:10px; font-weight:800; color:#0A192F; font-size:15px; text-align:center;">[{name2}님의 명식]</div>' + saju_table_html2 if mode == "💞 궁합 시너지 리포트" else ""}
                 {chapters_html}
                 
-                <button class="kakao-btn" onclick="shareMessage()">
-                    💬 내 귀한 명식 카톡으로 자랑하기
+                <button class="share-btn" onclick="triggerShare()">
+                    💬 친구들에게 내 명식 결과 공유하기
                 </button>
 
                 <div class="footer">솔 운명상점의 VVIP 전용 엔진으로 생성되었습니다.</div>
             </div>
 
             <script>
-                if (!Kakao.isInitialized()) {{
-                    Kakao.init('{KAKAO_JS_KEY}');
-                }}
-                function shareMessage() {{
-                    Kakao.Share.sendDefault({{
-                        objectType: 'feed',
-                        content: {{
-                            title: '🔮 솔 운명상점 VIP 리포트',
-                            description: '{name1}님의 명식에서 가장 빛나는 기운은 [{feature_name}]의 기운입니다. 이는 전체 상위 {top_percent}%에게만 허락되는 매력 자본입니다.',
-                            imageUrl: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=600&auto=format&fit=crop', 
-                            link: {{ mobileWebUrl: '{APP_URL}', webUrl: '{APP_URL}' }},
-                        }},
-                        buttons: [
-                            {{
-                                title: '나의 숨겨진 무기 확인하기',
-                                link: {{ mobileWebUrl: '{APP_URL}', webUrl: '{APP_URL}' }},
-                            }},
-                        ],
-                    }});
+                function triggerShare() {{
+                    const shareTitle = '🔮 솔 운명상점 VIP 리포트';
+                    const shareText = '✨ {name1}님의 명식에서 가장 빛나는 기운은 [{feature_name}]입니다!\\n전체 상위 {top_percent}%에게만 허락되는 매력 자본을 확인해보세요.\\n\\n👇 나의 숨겨진 무기 확인하기\\n{APP_URL}';
+                    
+                    if (navigator.share) {{
+                        navigator.share({{
+                            title: shareTitle,
+                            text: shareText
+                        }}).catch((error) => console.log('공유 취소됨', error));
+                    }} else {{
+                        // 구형 브라우저 등에서 지원하지 않을 경우 안내창 띄움
+                        alert("아래 텍스트를 복사하여 친구에게 전달해보세요!\\n\\n" + shareText);
+                    }}
                 }}
             </script>
             </body></html>
@@ -454,14 +467,11 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
             # ==========================================
             # 💡 대표님(관리자)용 앱 화면
             # ==========================================
-            st.success("✅ 솔 운명상점 VVIP 리포트 분석이 완료되었습니다!")
+            st.success("✅ 솔 운명상점 VVIP 리포트 분석이 완료되었습니다! 아래 표들이 정상적으로 출력되었는지 확인 후 다운로드하세요.")
             
-            # 관리자 확인용 상위 % 결과
-            st.info(f"✨ 추출된 바이럴 데이터: **[{feature_name}]** (상위 {top_percent}%)가 카카오톡 공유 시 제목으로 들어갑니다.")
-            
-            # 관리자용 리포트 다운로드 버튼 (고객이 받는 HTML에는 이 버튼이 없음!)
+            # 관리자용 리포트 다운로드 버튼
             st.download_button(
-                label="📥 폰에 리포트 저장하기 (고객 전송용)", 
+                label="📥 폰에 리포트 저장하기 (고객 전송용 HTML)", 
                 data=final_html, 
                 file_name=f"{name1}_솔운명상점_리포트.html", 
                 mime="text/html", 
