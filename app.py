@@ -454,8 +454,8 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
                         </details>
                         """
 
-            # 🚀 네이티브 공유 API(Web Share API)가 포함된 최종 고객용 HTML
-            APP_URL = "https://gam2joa.streamlit.app"
+            # 🚀 영업용 파이프라인 (카카오톡 오픈채팅방 링크)
+            OPEN_CHAT_LINK = "https://open.kakao.com/o/g7frhIri"
 
             final_html = f"""
             <!DOCTYPE html><html><head>
@@ -489,7 +489,7 @@ if st.button("🧧 프리미엄 리포트 생성 시작", use_container_width=Tr
             <script>
                 function triggerShare() {{
                     const shareTitle = '🔮 솔 운명상점 VIP 리포트';
-                    const shareText = '✨ {name1}님의 명식에서 가장 빛나는 기운은 [{feature_name}]입니다!\\n전체 상위 {top_percent}%에게만 허락되는 매력 자본을 확인해보세요.\\n\\n👇 나의 숨겨진 무기 확인하기\\n{APP_URL}';
+                    const shareText = '✨ [솔 운명상점] {name1}님의 명식 분석 결과\\n\\n당신의 사주에서 가장 빛나는 기운은 바로 [ {feature_name} ]! 🌟\\n이는 전체 인구 중 상위 {top_percent}%에게만 허락되는 아주 특별하고 귀한 매력 자본입니다.\\n\\n타고난 그릇과 숨겨진 무기를 제대로 알고 활용하면 인생의 타이밍이 달라집니다.\\n\\n👇 나도 내 운명의 숨겨진 무기가 궁금하다면?\\n👉 내 사주 보러가기: {OPEN_CHAT_LINK}';
                     
                     if (navigator.share) {{
                         navigator.share({{
